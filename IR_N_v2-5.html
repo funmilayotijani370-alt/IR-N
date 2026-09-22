@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IR.N — Video Platform</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f7fb;color:#111827}
+header{height:64px;background:#111827;color:#fff;display:flex;align-items:center;gap:22px;padding:0 18px;position:sticky;top:0;z-index:10}
+.logo{font-size:25px;font-weight:900;letter-spacing:1px}.search{flex:1;max-width:520px;background:#1f2937;border:1px solid #374151;color:#fff;border-radius:22px;padding:11px 17px;outline:0}
+.account{margin-left:auto;background:#2563eb;border:0;color:#fff;padding:10px 15px;border-radius:20px;font-weight:bold}
+.layout{display:flex;max-width:1200px;margin:auto}.side{width:210px;padding:22px 12px;position:sticky;top:64px;height:calc(100vh - 64px)}
+.side button{width:100%;padding:12px;border:0;background:transparent;text-align:left;border-radius:10px;margin-bottom:5px;font-size:15px;cursor:pointer}.side button:hover{background:#e8edf5}
+.content{flex:1;padding:24px 16px 50px}.hero{background:#111827;color:#fff;border-radius:18px;padding:28px;margin-bottom:22px}
+.hero h1{margin:0 0 8px;font-size:32px}.hero p{color:#cbd5e1;margin:0 0 20px}.primary{background:#2563eb;color:#fff;border:0;border-radius:10px;padding:12px 17px;font-weight:bold;cursor:pointer}
+.upload{display:none;background:#fff;border-radius:15px;padding:20px;margin-bottom:22px;box-shadow:0 4px 15px #0000000d}
+.upload input{width:100%;padding:12px;margin:7px 0 14px;border:1px solid #d1d5db;border-radius:9px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}.card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 15px #0000000d}.thumb{height:145px;background:#111827;display:flex;align-items:center;justify-content:center;color:#fff;font-size:38px}.card-body{padding:14px}.card h3{margin:0 0 7px;font-size:17px}.muted{color:#6b7280;font-size:13px}
+.empty{text-align:center;background:#fff;border-radius:14px;padding:35px;color:#6b7280;grid-column:1/-1}
+@media(max-width:700px){header{gap:10px}.search{max-width:none}.side{display:none}.content{padding:16px 12px}.hero h1{font-size:26px}.account{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">IR.N</div>
+  <input id="search" class="search" placeholder="Search videos...">
+  <button class="account" onclick="alert('Account system comes next!')">Sign in</button>
+</header>
+
+<div class="layout">
+  <aside class="side">
+    <button onclick="showSection('home')">🏠 Home</button>
+    <button onclick="showSection('videos')">🎥 Videos</button>
+    <button onclick="showUpload()">⬆️ Upload</button>
+    <button onclick="alert('Your library will be connected to accounts in the next stage.')">📚 My Library</button>
+  </aside>
+
+  <main class="content">
+    <section class="hero">
+      <h1>Welcome to IR.N</h1>
+      <p>Upload, discover and watch video content in one simple place.</p>
+      <button class="primary" onclick="showUpload()">Upload a video</button>
+    </section>
+
+    <section id="uploadBox" class="upload">
+      <h2>Upload to IR.N</h2>
+      <label>Video title</label>
+      <input id="title" placeholder="Enter a title">
+      <label>Choose video</label>
+      <input id="file" type="file" accept="video/*">
+      <button class="primary" onclick="addVideo()">Add to library</button>
+      <p id="status" class="muted"></p>
+    </section>
+
+    <h2>Latest videos</h2>
+    <section id="grid" class="grid"></section>
+  </main>
+</div>
+
+<script>
+let videos=[];
+const grid=document.getElementById('grid'), search=document.getElementById('search');
+
+function showUpload(){document.getElementById('uploadBox').style.display='block';document.getElementById('title').focus();}
+function showSection(){window.scrollTo({top:0,behavior:'smooth'});}
+
+function addVideo(){
+  const file=document.getElementById('file').files[0];
+  const title=document.getElementById('title').value.trim() || (file?file.name:'');
+  const status=document.getElementById('status');
+  if(!file){status.textContent='Choose a video first.';return;}
+  videos.unshift({title,url:URL.createObjectURL(file),name:file.name});
+  document.getElementById('title').value='';document.getElementById('file').value='';
+  status.textContent='Video added successfully!';
+  render();
+}
+search.addEventListener('input',render);
+
+function render(){
+  const q=search.value.toLowerCase();
+  const list=videos.filter(v=>v.title.toLowerCase().includes(q));
+  if(!list.length){grid.innerHTML='<div class="empty">No videos yet. Upload the first video to IR.N.</div>';return;}
+  grid.innerHTML=list.map(v=>`
+    <article class="card">
+      <video controls width="100%" style="display:block;background:#000;max-height:220px" src="${v.url}"></video>
+      <div class="card-body"><h3>${escapeHtml(v.title)}</h3><div class="muted">IR.N video</div></div>
+    </article>`).join('');
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+render();
+</script>
+</body>
+</html>
